@@ -1,13 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <!--
-    <div>
-        {% for birepjour in BiRepJours %}
-            <p>{{ birepjour.descript }}</p>
-        {% endfor %}
-    </div>
-    -->
 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
   <h5 class="my-0 mr-md-auto font-weight-normal">锦江都城数据仪表板</h5>
   <nav class="my-2 my-md-0 mr-md-3">
@@ -21,28 +14,16 @@
 <div class="container">
   <div class="card-deck mb-3 text-center">
 
-    <div class="card mb-4 shadow-sm">
-      <div id="bar" class="card-body"></div>
+    <div class="card shadow-sm">
+      <div id="pie_brand_count" class="card-body"></div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-       <div id="pie" class="card-body"></div>
+    <div class="card shadow-sm">
+       <div id="line_resv_count" class="card-body"></div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header">
-        <h4 class="my-0 font-weight-normal">Enterprise</h4>
-      </div>
-      <div class="card-body">
-        <h1 class="card-title pricing-card-title">$29 <small class="text-muted">/ mo</small></h1>
-        <ul class="list-unstyled mt-3 mb-4">
-          <li>30 users included</li>
-          <li>15 GB of storage</li>
-          <li>Phone and email support</li>
-          <li>Help center access</li>
-        </ul>
-        <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
-      </div>
+    <div class="card shadow-sm" style="height:300px;">
+        <div id="bar" class="card-body"></div>
     </div>
   </div>
 </div>
@@ -54,7 +35,7 @@
         $(
             function () {
                 fetchData(chart);
-                setInterval(fetchData, 20000);
+                setInterval(fetchData(), 2000);
             }
         );
 
@@ -69,11 +50,14 @@
             });
         }
 
-        var piechart = echarts.init(document.getElementById('pie'), 'white', {renderer: 'canvas'});
+        var piechart = echarts.init(document.getElementById('pie_brand_count'), 'white', {renderer: 'canvas'});
         $(
             function () {
                 fetchData(piechart);
-                setInterval(pieFetchData, 20000);
+                // js中函数参数如果是”函数名+()“，则会先执行函数，然后将返回值作为真正的参数。相反参数没加“（）”则会被作为一个函数块指针，不先执行。
+                // pieFetchData -- 效果首次也暂停n毫秒，调用方法……
+                // pieFetchData()  -- 效果首次执行后，间隔n毫秒，调用方法……
+                setInterval(pieFetchData(), 20000);
             }
         );
 
@@ -84,6 +68,28 @@
                 dataType: 'json',
                 success: function (result) {
                     piechart.setOption(result);
+                }
+            });
+        }
+
+        var linechart = echarts.init(document.getElementById('line_resv_count'), 'white', {renderer: 'canvas'});
+        $(
+            function () {
+                fetchData(linechart);
+                // js中函数参数如果是”函数名+()“，则会先执行函数，然后将返回值作为真正的参数。相反参数没加“（）”则会被作为一个函数块指针，不先执行。
+                // pieFetchData -- 效果首次也暂停n毫秒，调用方法……
+                // pieFetchData()  -- 效果首次执行后，间隔n毫秒，调用方法……
+                setInterval(lineFetchData(), 20000);
+            }
+        );
+
+        function lineFetchData() {
+            $.ajax({
+                type: "GET",
+                url: "/lineChart",
+                dataType: 'json',
+                success: function (result) {
+                    linechart.setOption(result);
                 }
             });
         }

@@ -2,10 +2,10 @@ from flask import flash,redirect,url_for,render_template
 
 from JJEchart import app
 import JJEchart.models as jjm
+import datetime
 
-from jinja2 import Markup
 from pyecharts import options as opts
-from pyecharts.charts import Bar,Pie
+from pyecharts.charts import Bar,Pie,Line
 
 
 
@@ -26,11 +26,43 @@ def pie_base() -> Pie:
         Pie()
         .add(series_name="",
              data_pair=jjm.query_brand_count(),
+             #data_pair = ['10','20','70'],
              radius=["40%","75%"])
-        .set_global_opts(title_opts=opts.TitleOpts(title="Pie-基本示例"))
+        .set_global_opts(title_opts=opts.TitleOpts(title="开业酒店数"))
         .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
     )
     return c
+
+
+def line_base() -> Line:
+    datestart = datetime.datetime.now().date()
+    dt=[]
+    i = 0
+    while i < 7:
+        dt.append(datestart.strftime('%m/%d'))
+        datestart += datetime.timedelta(days=1)
+        i+=1
+    c = (
+        Line()
+            .add_xaxis(dt)
+            #.add_yaxis("预订房晚", [20,70,0,90,80])
+            .add_yaxis("预订房晚", jjm.query_rmnum_by_days())
+            .add_yaxis("同比房晚", jjm.query_rmnum_by_lastyear_days())
+            .set_series_opts(
+            areastyle_opts=opts.AreaStyleOpts(opacity=0.5),
+            label_opts=opts.LabelOpts(is_show=False),
+        )
+            .set_global_opts(
+            title_opts=opts.TitleOpts(title="Line-面积图"),
+            xaxis_opts=opts.AxisOpts(
+                axistick_opts=opts.AxisTickOpts(is_align_with_label=True),
+                is_scale=False,
+                boundary_gap=False,
+            ),
+        )
+    )
+    return c
+
 
 @app.route('/',methods=['GET','POST'])
 def index():
@@ -48,4 +80,9 @@ def get_bar_chart():
 @app.route("/pieChart")
 def get_pie_chart():
     c = pie_base()
+    return c.dump_options_with_quotes()
+
+@app.route("/lineChart")
+def get_line_chart():
+    c = line_base()
     return c.dump_options_with_quotes()
